@@ -12,10 +12,9 @@ for i in range(12):
         word.append(letter)
     
 
-    if len(word) == 5:
-        formed_word = ''.join(word)
-        if formed_word == "LUMOS":
-            print(formed_word, "formed!")
-            break
-        else:
-            print("-1")
+    if len(word) == 5 and " ".join(word) == "LUMOS":
+      print(" ".join(word), "formed!")
+  
+if " ".join(word) != "LUMOS":
+  print("-1")
+      
