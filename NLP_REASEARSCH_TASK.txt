@@ -48,8 +48,6 @@ In short, One-Hot Encoding is like giving each word a unique "ID badge," but wit
 
 2. Bag of Words (BoW)
 
-The Bag of Words model is one of the earliest and most widely used techniques in Natural Language Processing (NLP) to convert text into numerical form.
-
 It represents a document as a collection (or “bag”) of the words it contains, ignoring grammar and word order, but keeping track of how many times each word appears.
 
 
@@ -89,14 +87,14 @@ Disadvantages:
 
 Ignores word order and grammar → "The cat sat on the mat" = "On the mat sat the cat".
 
-High-dimensional and sparse vectors → Inefficient with large vocabularies.
+Inefficient with large vocabularies.
 
 No semantic meaning captured → "cat" and "dog" are treated as unrelated as "cat" and "chased".
 
 The point of BoW is to create a numerical representation of text based on word frequencies, making text analyzable by algorithms, even though it ignores grammar and meaning.
 
 
-3. Term Frequency – Inverse Document Frequency (TF-IDF)
+3. Term Frequency – Inverse Document Frequency (TF-IDF) 
 
 TF-IDF is a numerical representation of text that measures how important a word is in a document relative to the entire collection (corpus).
 
@@ -105,9 +103,11 @@ It is built on top of Bag of Words, but instead of using plain counts, it weight
 * Common words (like the, is, and) get lower scores.
 * Rare but important words (like machine, neural, cancer) get higher scores.
 
+TF -> FREQUENCY
+IDF -> RARENESS
 ---
 
-## Formula
+Formula
 
 1. Term Frequency (TF):
 
@@ -153,7 +153,8 @@ Step 3 – Document Frequency (df):
 
 Step 4 – IDF:
 
-* IDF(the) = log(2/2) = 0 → very low (common word)
+According to smoothened version
+* IDF(the) = log(2/2) = 0 → very low (common word) lower the idf score, common the word
 * IDF(cat) = log(2/2) = 0 → very low
 * IDF(dog) = log(2/1) = log(2) ≈ 0.30
 * IDF(chased) = log(2/1) ≈ 0.30
@@ -196,248 +197,7 @@ TF-IDF is like BoW with intelligence — it downplays common words and highlight
 ---
 
 
-4. Word Embeddings
 
-Computers normally treat words as separate symbols. For example:
-“cat” → 1, “dog” → 2, “apple” → 3
-This approach does not capture meaning. The computer cannot tell that cat and dog are related, but cat and apple are not.
 
-Word embeddings fix this by representing words as vectors of real numbers in a continuous space. Words with similar meanings are close to each other in this space.
-
-Example:
-king ≈ [0.21, -0.34, 0.56, …]
-queen ≈ [0.19, -0.40, 0.60, …]
-apple ≈ [-0.90, 0.12, 0.45, …]
-
-In this space:
-king – man + woman ≈ queen
-cat will be close to dog, but far from apple.
-
-   Word2Vec
-
-Word2Vec is a popular algorithm created by Google in 2013 to generate word embeddings. It has two main architectures:
-
-1. Continuous Bag of Words (CBOW)
-	•	Predicts a word from its context (neighboring words).
-	•	Example: sentence = “The cat sits on the mat”
-Input context = {“The”, “sits”, “on”, “the”}
-Model predicts = “cat”
-
-CBOW is fast and works well with smaller datasets.
-
-2. Skip-Gram
-	•	Does the opposite: predicts context words from a given word.
-	•	Example: input word = “cat”
-Model predicts neighbors like {“The”, “sits”, “on”}
-
-Skip-gram works better with large datasets and captures rare words more effectively.
-
-⸻
-
-How It Works
-	1.	The model is a simple neural network with:
-	•	input layer (one-hot encoded word)
-	•	hidden layer (the embedding layer)
-	•	output layer (probabilities of context words)
-	2.	During training, the network learns to predict words in context.
-	3.	After training, the hidden layer weights become the word embeddings.
-
-⸻
-
-Why Word2Vec is Useful
-	•	Captures semantic similarity (Paris is close to London, far from banana).
-	•	Supports analogy reasoning (king – man + woman ≈ queen).
-	•	More efficient than older methods like TF-IDF or count-based models.
-	•	Pretrained models are available such as Google News Word2Vec, GloVe, and fastText.
-
-⸻
-
-Limitations of Word2Vec
-	•	Each word has only one vector, so multiple meanings of the same word cannot be distinguished.
-	•	Does not capture sentence-level meaning.
-	•	Needs large amounts of text data for high quality embeddings.
-	•	Rare words or unseen words are hard to handle.
-	•	Context is ignored, so apple in “apple pie” and “Apple Inc.” will have the same vector.
-	•	Does not handle subword information like prefixes or suffixes.
-	•	Has been overtaken by contextual models such as BERT and GPT, which create embeddings that change with context.
-
-   GloVe
    
-Step 1: Word co-occurrence matrix
 
-Imagine you scan a huge text corpus and count:
-	•	How often does word i appear near word j?
-This gives you a big matrix of word–word co-occurrence.
-Example (simplified):
-So this table encodes how often words co-occur across the whole corpus.
-
-⸻
-
-Step 2: Probability of co-occurrence
-
-From the matrix, we compute probabilities like:
-
-P(j | i) = probability that word j appears in the context of word i
-
-For example:
-P(deep | like) = count(like, deep) / total co-occurrences of “like”
-
-⸻
-
-Step 3: Ratio of probabilities
-
-The key trick in GloVe is: ratios of probabilities reveal meaning.
-
-Example with the words: ice, steam, solid, gas.
-	•	P(solid | ice) is high (because ice often appears near solid).
-	•	P(solid | steam) is low.
-	•	P(gas | steam) is high.
-	•	P(gas | ice) is low.
-
-So the ratio P(solid | ice) / P(solid | steam) is very large, while
-P(gas | ice) / P(gas | steam) is very small.
-
-These ratios capture meaningful differences in how words are used.
-
-⸻
-
-Step 4: Objective function
-
-GloVe trains word vectors so that:
-
-dot product(word_i, word_j) ≈ log(co-occurrence(i, j))
-
-In other words: if two words co-occur often, their vectors should have a large dot product.
-
-⸻
-
-Step 5: Training
-	•	Start with random word vectors.
-	•	Use gradient descent to minimize the difference between predicted co-occurrence and actual co-occurrence.
-	•	Add a weighting function so very frequent words (like “the”, “and”) don’t dominate.
-
-⸻
-
-Step 6: Result
-
-When training finishes, we have dense word embeddings (say 50–300 dimensions).
-Now:
-	•	Similar words have similar vectors (king, queen, prince).
-	•	Analogies work: king – man + woman ≈ queen.
-	•	You can use these vectors in downstream NLP tasks.
-5. Contextual Word Embeddings
-
-The Problem with Word2Vec and GloVe
-	•	Word2Vec/GloVe give static embeddings.
-	•	Example: the word “bank” gets one vector no matter the sentence:
-	•	“I sat by the bank of the river”
-	•	“I deposited money in the bank”
-Both meanings are different, but the vector is the same.
-
-⸻
-
-Contextual Embeddings (the fix)
-
-Instead of one fixed vector per word, these models generate different embeddings depending on the context of the word in the sentence.
-
-So:
-	•	“bank” in sentence about rivers → embedding near “water”, “shore”.
-	•	“bank” in sentence about money → embedding near “finance”, “loan”.
-
-This is why they’re called contextual word embeddings.
-
-⸻
-
-ELMo (2018, by AllenNLP)
-	•	Name: Embeddings from Language Models.
-	•	Idea: Use a deep bidirectional LSTM language model.
-	•	How it works:
-	1.	Train a language model on a huge corpus (predict the next word, given history).
-	2.	Use hidden states from multiple LSTM layers as the embedding for each word.
-	3.	Because it’s bidirectional, ELMo looks at the whole sentence (both left and right context).
-
-Example:
-Sentence = “He went to the bank to fish.”
-ELMo embedding for “bank” will encode “fish” as context, so the vector means “riverbank”.
-
-⸻
-
-BERT (2018, by Google)
-	•	Name: Bidirectional Encoder Representations from Transformers.
-	•	Uses the Transformer architecture instead of LSTMs.
-	•	Key innovations:
-	1.	Masked Language Model: Randomly mask some words and train the model to predict them.
-Example: “The cat sat on the [MASK]” → model predicts “mat”.
-	2.	Bidirectional Attention: Uses self-attention to look at the entire sentence (left and right) at once.
-	•	Result: For each token in the sentence, BERT produces a context-aware embedding.
-
-Example:
-Sentence = “I went to the bank to withdraw money.”
-	•	BERT embedding for “bank” here is near finance words.
-Sentence = “The fish swam near the bank.”
-	•	BERT embedding for “bank” here is near nature words.
-
-⸻
-
-Comparing ELMo and BERT
-	•	ELMo uses LSTMs; BERT uses Transformers (much more powerful).
-	•	ELMo embeddings are contextual but not pre-trained as richly as BERT.
-	•	BERT pre-training + fine-tuning became the standard approach for NLP.
-
-⸻
-
-Why Contextual Embeddings Matter
-	•	They solve polysemy (multiple meanings).
-	•	They improve performance on almost every NLP task (sentiment analysis, QA, translation, etc.).
-	•	They paved the way for large models like GPT.
-
-6. Sentence & Document Embeddings
-
-1. Doc2Vec (Paragraph Vector)
-	•	Extension of Word2Vec (by the same team at Google).
-	•	Idea: Just like Word2Vec learns word vectors, Doc2Vec learns an extra vector for the whole document (or sentence).
-	•	During training, the model predicts a word given its context + the document ID.
-	•	That “document ID vector” becomes the document embedding.
-
-👉 Example:
-Sentence: “The dog chased the cat.”
-	•	Word2Vec gives vectors for dog, chased, cat.
-	•	Doc2Vec also learns a special “document vector” summarizing the whole sentence.
-
-So even if the sentence is long, its embedding captures the gist.
-
-⸻
-
-2. Sentence-BERT (SBERT)
-	•	Built on top of BERT.
-	•	Problem: BERT isn’t designed to directly give good sentence embeddings (cosine similarity between two sentence embeddings isn’t reliable).
-	•	SBERT solves this by adding a pooling layer on top of BERT outputs (like mean pooling or CLS token) and training with Siamese networks + similarity loss.
-
-👉 Example:
-Sentences:
-	1.	“A man is playing guitar.”
-	2.	“Someone is making music with a guitar.”
-
-	•	SBERT maps both to very close embeddings in vector space.
-	•	If you compute cosine similarity, you get a high score (~0.85+).
-
-⸻
-
-3. Universal Sentence Encoder (USE)
-	•	From Google.
-	•	Aimed at being plug-and-play for sentence embeddings.
-	•	Built with Transformer or Deep Averaging Network (DAN) architectures.
-	•	Trained on a wide variety of tasks: conversation data, QA, web news, etc.
-	•	Output: a 512-dimensional fixed-size embedding for any sentence.
-
-👉 Example:
-Sentence: “The weather is nice today.”
-	•	USE → a single 512D vector (regardless of sentence length).
-	•	Good for downstream tasks like clustering, semantic search, sentiment classification.
-
-⸻
-
-🔑 Main differences:
-	•	Doc2Vec → classical, simple, but weaker for semantic similarity.
-	•	Sentence-BERT → state-of-the-art for semantic similarity & retrieval tasks.
-	•	USE → easy-to-use, Google’s “universal” approach, but less accurate than SBERT for fine-grained similarity.
